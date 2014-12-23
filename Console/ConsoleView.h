@@ -91,6 +91,7 @@ class ConsoleView
 			MESSAGE_HANDLER(WM_IME_COMPOSITION, OnIMEComposition)
 			MESSAGE_HANDLER(WM_IME_STARTCOMPOSITION, OnIMEStartComposition)
 			MESSAGE_HANDLER(WM_IME_ENDCOMPOSITION, OnIMEEndComposition)
+			MESSAGE_HANDLER(WM_IME_NOTIFY, OnIMENotify)
 
 			MESSAGE_HANDLER(WM_PRINTCLIENT, OnPrintClient)
 		END_MSG_MAP()
@@ -124,6 +125,7 @@ class ConsoleView
 		LRESULT OnIMEComposition(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 		LRESULT OnIMEStartComposition(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 		LRESULT OnIMEEndComposition(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+		LRESULT OnIMENotify(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 		virtual void RedrawCharOnCursor(CDC& dc);
 

@@ -3129,6 +3129,22 @@ LRESULT ConsoleView::OnIMEStartComposition(UINT /*uMsg*/, WPARAM /*wParam*/, LPA
 	// call ::DefWindowProc()
 	bHandled = FALSE;
 
+	HIMC hImc = ::ImmGetContext(m_hWnd);
+
+	SharedMemory<ConsoleInfo>& consoleInfo = m_consoleHandler.GetConsoleInfo();
+
+	COMPOSITIONFORM cf;
+	cf.dwStyle = CFS_POINT;
+	cf.ptCurrentPos.x = (consoleInfo->csbi.dwCursorPosition.X - consoleInfo->csbi.srWindow.Left) * m_nCharWidth + m_nVInsideBorder;
+	cf.ptCurrentPos.y = (consoleInfo->csbi.dwCursorPosition.Y - consoleInfo->csbi.srWindow.Top) * m_nCharHeight + m_nHInsideBorder;
+	::ImmSetCompositionWindow(hImc, &cf);
+
+	LOGFONT lf;
+	m_fontText.GetLogFont(lf);
+	::ImmSetCompositionFont(hImc, &lf);
+
+	::ImmReleaseContext(m_hWnd, hImc);
+
 	m_boolImmComposition = true;
 
 	return 0;
@@ -3148,3 +3164,73 @@ LRESULT ConsoleView::OnIMEEndComposition(UINT /*uMsg*/, WPARAM /*wParam*/, LPARA
 
 	return 0;
 }
+
+//////////////////////////////////////////////////////////////////////////////
+
+LRESULT ConsoleView::OnIMENotify(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+{
+	// call ::DefWindowProc()
+	bHandled = FALSE;
+
+	HIMC hImc = ::ImmGetContext(m_hWnd);
+	CWindowDC	dcWindow(m_hWnd);
+	CRect		rectCursor(0, 0, m_nCharWidth, m_nCharHeight);
+	m_cursor.reset();
+	m_cursorDBCS.reset();
+	if ( ::ImmGetOpenStatus(hImc) )
+	{
+		m_cursor = CursorFactory::CreateCursor(
+			m_hWnd,
+			m_bAppActive,
+			m_tabData.get() ? static_cast<CursorStyle>(m_tabData->dwCursorStyle) : cstyleXTerm,
+			dcWindow,
+			rectCursor,
+			RGB(255, 0, 0),
+			this,
+			true);
+
+		rectCursor.right += m_nCharWidth;
+		m_cursorDBCS = CursorFactory::CreateCursor(
+			m_hWnd,
+			m_bAppActive,
+			m_tabData.get() ? static_cast<CursorStyle>(m_tabData->dwCursorStyle) : cstyleXTerm,
+			dcWindow,
+			rectCursor,
+			RGB(255, 0, 0),
+			this,
+			false);
+	}
+	else
+	{
+		m_cursor = CursorFactory::CreateCursor(
+			m_hWnd,
+			m_bAppActive,
+			m_tabData.get() ? static_cast<CursorStyle>(m_tabData->dwCursorStyle) : cstyleXTerm,
+			dcWindow,
+			rectCursor,
+			m_tabData.get() ? m_tabData->crCursorColor : RGB(255, 255, 255),
+			this,
+			true);
+
+		rectCursor.right += m_nCharWidth;
+		m_cursorDBCS = CursorFactory::CreateCursor(
+			m_hWnd,
+			m_bAppActive,
+			m_tabData.get() ? static_cast<CursorStyle>(m_tabData->dwCursorStyle) : cstyleXTerm,
+			dcWindow,
+			rectCursor,
+			m_tabData.get() ? m_tabData->crCursorColor : RGB(255, 255, 255),
+			this,
+			false);
+	}
+	::ImmReleaseContext(m_hWnd, hImc);
+
+	if (m_cursor.get()) m_cursor->Draw(m_bAppActive, m_consoleHandler.GetCursorInfo()->dwSize);
+	if (m_cursorDBCS.get()) m_cursorDBCS->Draw(m_bAppActive, m_consoleHandler.GetCursorInfo()->dwSize);
+	BitBltOffscreen();
+
+	m_boolImmComposition = false;
+
+	return 0;
+}
+//////////////////////////////////////////////////////////////////////////////
