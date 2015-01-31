@@ -305,7 +305,7 @@ HWND TabView::CreateNewConsole(ConsoleViewCreate* consoleViewCreate, const wstri
 
 			if (dlg.DoModal() != IDOK) return 0;
 
-			userCredentials.user     = dlg.GetUser();
+			userCredentials.SetUser(dlg.GetUser());
 			userCredentials.password = dlg.GetPassword();
 #endif
 		}
@@ -712,6 +712,20 @@ void TabView::SendTextToConsoles(const wchar_t* pszText)
 	{
 		if( it->second->IsGrouped() )
 			it->second->GetConsoleHandler().SendTextToConsole(pszText);
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////
+
+void TabView::SendCtrlCToConsoles()
+{
+	MutexLock	viewMapLock(m_viewsMutex);
+	for (ConsoleViewMap::iterator it = m_views.begin(); it != m_views.end(); ++it)
+	{
+		if( it->second->IsGrouped() )
+			it->second->GetConsoleHandler().SendCtrlC();
 	}
 }
 

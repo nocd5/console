@@ -36,15 +36,16 @@ extern CAppModule _Module;
 #include <atlddx.h>
 #include <atlmisc.h>
 
+#include <atltheme.h>
 #include <atlframe.h>
 #include <atlctrls.h>
 #include <atldlgs.h>
 #include <atlctrlw.h>
 #include <atlctrlx.h>
-#include <atltheme.h>
 #pragma warning(pop)
 
 #include <userenv.h>
+#include <Lm.h>
 
 #pragma warning(push)
 #pragma warning(disable: 4189 4267)
@@ -99,6 +100,7 @@ extern CAppModule _Module;
 #include <vector>
 #include <stack>
 #include <array>
+#include <regex>
 using namespace std;
 #pragma warning(pop)
 
